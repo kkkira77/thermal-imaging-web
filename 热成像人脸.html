@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Color Effect</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <script>
+    let cam;
+    let w = 640 / 1.5;
+    let h = 480 / 1.5;
+    let bg;
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      colorMode(HSB, 360);
+      noStroke();
+      cam = createCapture({ video: { width: { min: w }, height: { min: h } } });
+      cam.size(w, h);
+      cam.hide();
+      
+      if (isMobileDevice()) {
+        bg = createGraphics(int(h), int(w));
+      } else {
+        bg = createGraphics(int(w), int(h));
+      }
+    }
+
+    function draw() {
+      background(0);
+
+      if (cam.width > 0) {
+        w = cam.width;
+        h = cam.height;
+      }
+
+      if (width / height >= w / h) {
+        nW = width;
+        nH = width / (w / h);
+        oX = 0;
+        oY = (height - nH) / 2;
+      } else {
+        nW = height * (w / h);
+        nH = height;
+        oX = (width - nW) / 2;
+        oY = 0;
+      }
+      
+      cam.loadPixels();
+
+      for (let x = 0; x < cam.width; x++) {
+        for (let y = 0; y < cam.height; y++) {
+          let i = int((x + (y * cam.width)) * 4);
+          let d = cam.pixels[i];
+          let h = map(d, 0, 255, 360, 0);
+          let c = color(h, 360, 360);
+          bg.set(x, y, c);
+        }
+      }
+
+      bg.updatePixels();
+
+      push();
+      translate(width, 0);
+      scale(-1, 1);
+      image(bg, oX, oY, nW, nH);
+      pop();
+    }
+
+    function isMobileDevice() {
+      return (
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        )
+      );
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+
+    function mousePressed() {
+      if (
+        mouseX > 0 &&
+        mouseX < windowWidth &&
+        mouseY > 0 &&
+        mouseY < windowHeight
+      ) {
+        let fs = fullscreen();
+        fullscreen(!fs);
+      }
+    }
+    </script>
+</body>
+</html>
